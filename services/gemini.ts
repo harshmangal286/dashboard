@@ -1,12 +1,31 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
 
+const getGeminiApiKey = () => {
+  const viteApiKey = (import.meta.env.VITE_GEMINI_API_KEY as string | undefined)?.trim();
+  if (viteApiKey) return viteApiKey;
+
+  const injectedApiKey = (process.env.API_KEY as string | undefined)?.trim();
+  if (injectedApiKey) return injectedApiKey;
+
+  return undefined;
+};
+
 const getAIClient = () => {
-  return new GoogleGenAI({ apiKey: process.env.API_KEY });
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) return null;
+  return new GoogleGenAI({ apiKey });
+};
+
+const ensureAIClient = () => {
+  const ai = getAIClient();
+  if (!ai) {
+    throw new Error('Gemini API key missing. Set VITE_GEMINI_API_KEY (or GEMINI_API_KEY during build).');
+  }
+  return ai;
 };
 
 export const analyzeListingImage = async (base64Image: string, titleHint?: string) => {
-  const ai = getAIClient();
+  const ai = ensureAIClient();
   const prompt = `Analyze this image of a clothing item for sale on Vinted. ${titleHint ? `The item title is hinted as "${titleHint}".` : ''} 
   Provide accurate details for the following fields: Title (short and catchy), Description (appealing), Category Path (e.g., Women / Shoes / Trainers), Brand, Size, Color, Condition, Material, and estimated measurements in inches (Shoulder Width and Length).`;
 
@@ -51,7 +70,7 @@ export const analyzeListingImage = async (base64Image: string, titleHint?: strin
 };
 
 export const getMarketTrends = async (region: string) => {
-  const ai = getAIClient();
+  const ai = ensureAIClient();
   const response = await ai.models.generateContent({
     model: 'gemini-3-flash-preview',
     contents: `What are the currently trending clothing brands and items on Vinted in ${region}? 
@@ -63,13 +82,13 @@ export const getMarketTrends = async (region: string) => {
 
   const text = response.text || "";
   const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((chunk: any) => chunk.web).filter(Boolean) || [];
-  
+
   return { text, sources };
 };
 
 export const getDashboardTrendData = async (region: string = "UK") => {
-  const ai = getAIClient();
   try {
+    const ai = ensureAIClient();
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview',
       contents: `Perform a search and return numerical popularity scores for trending brands and a 6-month demand trajectory for Vinted in ${region}. Output MUST be valid JSON.`,
@@ -111,11 +130,10 @@ export const getDashboardTrendData = async (region: string = "UK") => {
     });
 
     const data = JSON.parse(response.text || "{}");
-    // Extract grounding sources from search metadata to comply with Gemini Search Grounding rules
     const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks?.map((chunk: any) => chunk.web).filter(Boolean) || [];
     return { ...data, sources };
   } catch (error) {
-    console.error("Gemini dashboard trend error:", error);
+    console.warn("Gemini dashboard trend unavailable, using fallback data:", error);
     return {
       brandTrends: [
         { brand: 'Stussy', score: 92, growth: 12 },

@@ -107,7 +107,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
             </div>
           </div>
           <div className="h-[320px]">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={240}>
               <AreaChart data={revenueData}>
                 <defs>
                   <linearGradient id="colorRev" x1="0" y1="0" x2="0" y2="1">
@@ -191,7 +191,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
                   <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]">Aggregating Market Points...</p>
                 </div>
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={240}>
                   <LineChart data={trendData?.popularityHistory || []} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#1A1A1A" />
                     <XAxis 
@@ -294,7 +294,7 @@ const Dashboard: React.FC<DashboardProps> = ({ account }) => {
                  ))}
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={240}>
                 <BarChart data={trendData?.brandTrends || []} layout="vertical" margin={{ left: 20, right: 40 }}>
                   <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} stroke="#1A1A1A" />
                   <XAxis type="number" hide />
