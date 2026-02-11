@@ -1,0 +1,7 @@
+{
+  "name": "Vintend Dashboard",
+  "description": "A professional automation and inventory management dashboard for Vinted power sellers, featuring AI-assisted listing creation and market trend analysis via Gemini.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
